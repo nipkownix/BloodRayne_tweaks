@@ -77,6 +77,15 @@ DWORD WINAPI Init(LPVOID)
 	pattern = hook::pattern("DC 05 ? ? ? ? D9 5D ? D9 45 ? DD 45 ? D8 C1 D8 E4");
 	injector::MakeNOP(pattern.get_first(0), 6, true);
 	injector::MakeCALL(pattern.get_first(0), HUDFixRaynePortrait, true);
+
+	// Fix offset red portrait overlay
+	pattern = hook::pattern("DC 05 ? ? ? ? D9 5D ? D9 C1 DC 45 ? DD 55 ? D9 5D ? D9 45 ?");
+	injector::MakeNOP(pattern.get_first(0), 6, true);
+	injector::MakeCALL(pattern.get_first(0), HUDFixRaynePortrait, true);
+
+	// Fix blood on Rayne's eye
+	pattern = hook::pattern("D8 05 ? ? ? ? 03 D1 C1 FA ? 8B CA D9 5D ? C1 E9 ?");
+	injector::MakeNOP(pattern.get_first(0), 6, true);
 	
 	return S_OK;
 }
