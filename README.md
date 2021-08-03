@@ -6,7 +6,7 @@ A project designed to fix and tweak BloodRayne: Terminal Cut on [Steam](https://
 ### Current feature
 
  * **Fix HUD** - Fix the HUD, moving it further away from the center of the screen.
- 	* Comparison: [Before](https://i.imgur.com/wGPkkUF.jpg) | [After](https://i.imgur.com/SbDyZIj.jpg)
+ 	* Comparison: [Before](https://i.imgur.com/wGPkkUF.jpg) | [After](https://i.imgur.com/x0LTEsQ.jpg) | [Ultrawide](https://i.imgur.com/zHT50rs.jpg)
 
 ### Installation
 
