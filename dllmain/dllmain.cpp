@@ -11,17 +11,62 @@ HMODULE proxy_dll = nullptr;
 
 //#define VERBOSE
 
-float fHUDHealthBoxPos = 0.0f;
-float fHUDPortraitPos = 16.0f;
-float fHUDRingPos = 0.0f;
-float fHUDPowersPos = 637.0f;
+uintptr_t jmpAddrGetGameRes;
 
+float fNewHealthBoxPos = 0.0f;
+float fNewPortraitPos = 16.0f;
+float fNewPowersPos;
+float fNewCirclePos;
+
+void CalculateHudPos(DWORD ResPointer)
+{
+	float fOrigPowerPos = 528;
+	float fOrigCirclePos = 110;
+
+	double fGameWidth = injector::ReadMemory<int>(ResPointer, true);
+	double fGameHeight = injector::ReadMemory<int>(ResPointer + 0x4, true);
+
+	float fAspectRatio = (fGameWidth / fGameHeight);
+	float fPowerPosOffset = ((480.0f * fAspectRatio) - 640.0f) / 2.0f;
+
+	fNewPowersPos = fOrigPowerPos + fPowerPosOffset;
+	fNewCirclePos = fOrigCirclePos - fPowerPosOffset;
+
+	#ifdef VERBOSE
+	std::cout << "fNewPowersPos = " << fNewPowersPos << std::endl;
+	std::cout << "fNewCirclePos = " << fNewCirclePos << std::endl;
+	#endif
+}
+
+DWORD _EAX;
+DWORD _ECX;
+DWORD ResPointer;
+void __declspec(naked) GetGameRes()
+{
+	_asm
+	{
+		mov _EAX, eax
+		mov _ECX, ecx
+		mov ResPointer, ecx
+	}
+
+	CalculateHudPos(ResPointer);
+
+	_asm
+	{
+		mov eax, _EAX
+		mov ecx, _ECX
+		mov eax, [ecx + 0x4]
+		add eax, eax
+		jmp jmpAddrGetGameRes
+	}
+}
 
 void __declspec(naked) HUDFixHealthBox()
 {
 	_asm
 	{
-		fld   dword ptr ds : [fHUDHealthBoxPos]
+		fld   dword ptr ds : [fNewHealthBoxPos]
 		ret
 	}
 }
@@ -30,7 +75,7 @@ void __declspec(naked) HUDFixRaynePortrait()
 {
 	_asm
 	{
-		fadd   dword ptr ds : [fHUDPortraitPos]
+		fadd   dword ptr ds : [fNewPortraitPos]
 		ret
 	}
 }
@@ -39,7 +84,7 @@ void __declspec(naked) HUDFixCircle()
 {
 	_asm
 	{
-		fld   dword ptr ds : [fHUDRingPos]
+		fld   dword ptr ds : [fNewCirclePos]
 		ret
 	}
 }
@@ -48,7 +93,7 @@ void __declspec(naked) HUDFixPowers()
 {
 	_asm
 	{
-		fmul dword ptr ds : [fHUDPowersPos]
+		fmul dword ptr ds : [fNewPowersPos]
 		ret
 	}
 }
@@ -56,10 +101,16 @@ void __declspec(naked) HUDFixPowers()
 
 DWORD WINAPI Init(LPVOID)
 {
-	std::cout << "yo" << std::endl;
+	std::cout << "Sono me... dare no me?" << std::endl;
+
+	// Get game resolution
+	auto pattern = hook::pattern("8B 41 04 03 C0 A3 ? ? ? ? C7 41 08 ? ? ? ? 8B 0D ? ? ? ? 51");
+	injector::MakeNOP(pattern.get_first(0), 5, true);
+	injector::MakeJMP(pattern.get_first(0), GetGameRes, true);
+	jmpAddrGetGameRes = (uintptr_t)pattern.count(1).get(0).get<uint32_t>(5);
 
 	// Fix "powers" section of the HUD
-	auto pattern = hook::pattern("DC 0D ? ? ? ? 89 75 D4 D8 05 ? ? ? ? D9 5D ?");
+	pattern = hook::pattern("DC 0D ? ? ? ? 89 75 D4 D8 05 ? ? ? ? D9 5D ?");
 	injector::MakeNOP(pattern.get_first(0), 6, true);
 	injector::MakeCALL(pattern.get_first(0), HUDFixPowers, true);
 
