@@ -3,10 +3,12 @@
 ### Description
 A project designed to fix and tweak BloodRayne: Terminal Cut on [Steam](https://store.steampowered.com/app/1373510/BloodRayne_Terminal_Cut/).
 
-### Current feature
+### Current features
 
  * **Fix HUD** - Fix the HUD, moving it further away from the center of the screen.
  	* Comparison: [Before](https://i.imgur.com/wGPkkUF.jpg) | [After](https://i.imgur.com/x0LTEsQ.jpg) | [Ultrawide](https://i.imgur.com/zHT50rs.jpg)
+
+ * **Lock cursor to game window** - Both the original version and the "Terminal Cut" have problems with multi-monitor systems. The game doesn't lock the cursor, causing it to be minimized seemingly at random when you try to attack or shoot using the mouse buttons. This happens because you're clicking outside the game's window, somewhere on your other monitor. This fix tries to properly resolve this issue by locking the cursor into the game's window.
 
 ### Installation
 
