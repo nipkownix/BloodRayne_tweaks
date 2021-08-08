@@ -1,6 +1,7 @@
 #include <iostream>
 #include "..\includes\stdafx.h"
 #include "..\Wrappers\wrapper.h"
+#include "CursorLock.h"
 
 std::string RealDllPath;
 std::string WrapperMode;
@@ -36,6 +37,8 @@ void CalculateHudPos(DWORD ResPointer)
 	std::cout << "fNewPowersPos = " << fNewPowersPos << std::endl;
 	std::cout << "fNewCirclePos = " << fNewCirclePos << std::endl;
 	#endif
+
+	SetCursorLock("BloodRayne");
 }
 
 DWORD _EAX;
@@ -97,7 +100,6 @@ void __declspec(naked) HUDFixPowers()
 		ret
 	}
 }
-
 
 DWORD WINAPI Init(LPVOID)
 {

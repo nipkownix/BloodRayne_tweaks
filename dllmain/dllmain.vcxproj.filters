@@ -13,6 +13,9 @@
     <ClCompile Include="..\external\ModUtils\Patterns.cpp">
       <Filter>external\ModUtils</Filter>
     </ClCompile>
+    <ClCompile Include="CursorLock.cpp">
+      <Filter>includes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\includes\stdafx.h">
@@ -134,6 +137,9 @@
     </ClInclude>
     <ClInclude Include="..\external\ModUtils\Trampoline.h">
       <Filter>external\ModUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="CursorLock.h">
+      <Filter>includes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
