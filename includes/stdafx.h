@@ -13,6 +13,7 @@
 #endif
 #include "injector\utility.hpp"
 #include "Patterns.h"
+#include "CursorLock.h"
 #include <filesystem>
 #include <string>
 #pragma warning(pop)

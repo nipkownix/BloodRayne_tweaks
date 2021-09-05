@@ -1,7 +1,6 @@
 #include <iostream>
 #include "..\includes\stdafx.h"
 #include "..\Wrappers\wrapper.h"
-#include "CursorLock.h"
 
 std::string RealDllPath;
 std::string WrapperMode;
@@ -106,7 +105,7 @@ void __declspec(naked) HUDFixPowers()
 	}
 }
 
-DWORD WINAPI Init(LPVOID)
+void Init()
 {
 	std::cout << "Sono me... dare no me?" << std::endl;
 
@@ -145,8 +144,6 @@ DWORD WINAPI Init(LPVOID)
 	// Fix blood on Rayne's eye
 	pattern = hook::pattern("D8 05 ? ? ? ? 03 D1 C1 FA ? 8B CA D9 5D ? C1 E9 ?");
 	injector::MakeNOP(pattern.get_first(0), 6, true);
-	
-	return S_OK;
 }
 
 void LoadRealDLL(HMODULE hModule)
@@ -178,7 +175,7 @@ bool APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 #endif
 		LoadRealDLL(hModule);
 
-		CloseHandle(CreateThread(nullptr, 0, Init, nullptr, 0, nullptr));
+		Init();
 
 		break;
 	case DLL_PROCESS_DETACH:
