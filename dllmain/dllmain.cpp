@@ -1,6 +1,8 @@
 #include <iostream>
 #include "..\includes\stdafx.h"
 #include "..\Wrappers\wrapper.h"
+#include "dllmain.h"
+#include "WndProcHook.h"
 
 std::string RealDllPath;
 std::string WrapperMode;
@@ -9,140 +11,85 @@ std::string WrapperName;
 HMODULE wrapper_dll = nullptr;
 HMODULE proxy_dll = nullptr;
 
-//#define VERBOSE
+uint32_t ResPointer;
 
-static uint32_t ResPointer;
-
-uintptr_t jmpAddrGetGameRes;
-
-float fNewHealthBoxPos = 0.0f;
-float fNewPortraitPos = 16.0f;
-float fNewPowersPos;
-float fNewCirclePos;
-
-void CalculateHudPos()
-{
-	float fOrigPowerPos = 528;
-	float fOrigCirclePos = 110;
-
-	double fGameWidth = injector::ReadMemory<int>(ResPointer, true);
-	double fGameHeight = injector::ReadMemory<int>(ResPointer + 0x4, true);
-
-	float fAspectRatio = (fGameWidth / fGameHeight);
-
-	float fPowerPosOffset = ((480.0f * fAspectRatio) - 640.0f) / 2.0f;
-
-	fNewPowersPos = fOrigPowerPos + fPowerPosOffset;
-	fNewCirclePos = fOrigCirclePos - fPowerPosOffset;
-
-	#ifdef VERBOSE
-	std::cout << std::hex << "ResPointer = " << ResPointer << std::endl;
-	std::cout << "fOrigPowerPos = " << fOrigPowerPos << std::endl;
-	std::cout << "fOrigCirclePos = " << fOrigCirclePos << std::endl;
-	std::cout << "fGameWidth = " << fGameWidth << std::endl;
-	std::cout << "fGameHeight = " << fGameHeight << std::endl;
-	std::cout << "fAspectRatio = " << fAspectRatio << std::endl;
-	std::cout << "fPowerPosOffset = " << fPowerPosOffset << std::endl;
-	std::cout << "fNewPowersPos = " << fNewPowersPos << std::endl;
-	std::cout << "fNewCirclePos = " << fNewCirclePos << std::endl;
-	#endif
-
-	SetCursorLock("BloodRayne");
-}
-
-DWORD _EAX;
-DWORD _ECX;
-void __declspec(naked) GetGameRes()
-{
-	_asm
-	{
-		mov _EAX, eax
-	}
-
-	CalculateHudPos();
-
-	_asm
-	{
-		mov ecx, dword ptr[ResPointer]
-		mov eax, _EAX
-		jmp jmpAddrGetGameRes
-	}
-}
-
-void __declspec(naked) HUDFixHealthBox()
-{
-	_asm
-	{
-		fld   dword ptr ds : [fNewHealthBoxPos]
-		ret
-	}
-}
-
-void __declspec(naked) HUDFixRaynePortrait()
-{
-	_asm
-	{
-		fadd   dword ptr ds : [fNewPortraitPos]
-		ret
-	}
-}
-
-void __declspec(naked) HUDFixCircle()
-{
-	_asm
-	{
-		fld   dword ptr ds : [fNewCirclePos]
-		ret
-	}
-}
-
-void __declspec(naked) HUDFixPowers()
-{
-	_asm
-	{
-		fmul dword ptr ds : [fNewPowersPos]
-		ret
-	}
-}
+double fNewHealthBoxPos = 0.0f;
+double fNewPortraitPos = 16.0f;
+double fNewPowersPos;
+double fNewCirclePos;
 
 void Init()
 {
 	std::cout << "Sono me... dare no me?" << std::endl;
 
+	Init_WndProcHook();
+
 	// Get game resolution
 	auto pattern = hook::pattern("8B 0D ? ? ? ? 8B 11 89 15 ? ? ? ? 8B 41 ? A3 ? ? ? ? A1 ? ? ? ? 83 F8");
 	ResPointer = injector::ReadMemory<uint32_t>(*pattern.count(1).get(0).get<uint32_t*>(2), true);
-	injector::MakeNOP(pattern.get_first(0), 6, true);
-	injector::MakeJMP(pattern.get_first(0), GetGameRes, true);
-	jmpAddrGetGameRes = (uintptr_t)pattern.count(1).get(0).get<uint32_t>(6);
+	struct GetGameRes
+	{
+		void operator()(injector::reg_pack& regs)
+		{
+			regs.ecx = ResPointer;
+
+			// Calculate HUD pos
+			double fOrigPowerPos = 528;
+			double fOrigCirclePos = 110;
+
+			double fGameWidth = *(int32_t*)ResPointer;
+			double fGameHeight = *(int32_t*)(ResPointer + 0x4);
+
+			double fAspectRatio = (fGameWidth / fGameHeight);
+
+			double fPowerPosOffset = ((480.0f * fAspectRatio) - 640.0f) / 2.0f;
+
+			fNewPowersPos = fOrigPowerPos + fPowerPosOffset;
+			fNewCirclePos = fOrigCirclePos - fPowerPosOffset;
+
+			#ifdef VERBOSE
+			std::cout << std::hex << "ResPointer = " << ResPointer << std::endl;
+			std::cout << "fOrigPowerPos = " << fOrigPowerPos << std::endl;
+			std::cout << "fOrigCirclePos = " << fOrigCirclePos << std::endl;
+			std::cout << "fGameWidth = " << fGameWidth << std::endl;
+			std::cout << "fGameHeight = " << fGameHeight << std::endl;
+			std::cout << "fAspectRatio = " << fAspectRatio << std::endl;
+			std::cout << "fPowerPosOffset = " << fPowerPosOffset << std::endl;
+			std::cout << "fNewPowersPos = " << fNewPowersPos << std::endl;
+			std::cout << "fNewCirclePos = " << fNewCirclePos << std::endl;
+			#endif
+			
+			// Lock the cursor once we press Play
+			EnableClipCursor(hWindow);
+		}
+	}; injector::MakeInline<GetGameRes>(pattern.count(1).get(0).get<uint32_t>(0), pattern.count(1).get(0).get<uint32_t>(6));
 
 	// Fix "powers" section of the HUD
-	pattern = hook::pattern("DC 0D ? ? ? ? 89 75 D4 D8 05 ? ? ? ? D9 5D ?");
-	injector::MakeNOP(pattern.get_first(0), 6, true);
-	injector::MakeCALL(pattern.get_first(0), HUDFixPowers, true);
+	pattern = hook::pattern("DC 0D ? ? ? ? 89 75 ? D8 05 ? ? ? ? D9 5D ? DB 05");
+	injector::WriteMemory(pattern.get_first(2), &fNewPowersPos, true);
 
 	// Fix HUD circle around the powers section
-	pattern = hook::pattern("DD 05 ? ? ? ? 89 BD ? ? ? ? D8 C9 DE EA D9 C9");
-	injector::MakeNOP(pattern.get_first(0), 6, true);
-	injector::MakeCALL(pattern.get_first(0), HUDFixCircle, true);
+	pattern = hook::pattern("DD 05 ? ? ? ? 89 BD ? ? ? ? D8 C9 DE EA D9 C9 D9 9D");
+	injector::WriteMemory(pattern.get_first(2), &fNewCirclePos, true);
 
 	// Fix HUD health box
-	pattern = hook::pattern("D9 05 ? ? ? ? DE C2 D9 C9 D9 ? ? D8 4D ?");
-	injector::MakeNOP(pattern.get_first(0), 6, true);
-	injector::MakeCALL(pattern.get_first(0), HUDFixHealthBox, true);
-	
+	pattern = hook::pattern("D9 05 ? ? ? ? DE C2 D9 C9 D9 5D ? D8 4D");
+	injector::WriteMemory(pattern.get_first(2), &fNewHealthBoxPos, true);
+
 	// Fix offset Rayne portrait
-	pattern = hook::pattern("DC 05 ? ? ? ? D9 5D ? D9 45 ? DD 45 ? D8 C1 D8 E4");
-	injector::MakeNOP(pattern.get_first(0), 6, true);
-	injector::MakeCALL(pattern.get_first(0), HUDFixRaynePortrait, true);
+	pattern = hook::pattern("DC 05 ? ? ? ? D9 5D ? D9 45 ? DD 45 ? D8 C1");
+	injector::WriteMemory(pattern.get_first(2), &fNewPortraitPos, true);
 
 	// Fix offset red portrait overlay
-	pattern = hook::pattern("DC 05 ? ? ? ? D9 5D ? D9 C1 DC 45 ? DD 55 ? D9 5D ? D9 45 ?");
-	injector::MakeNOP(pattern.get_first(0), 6, true);
-	injector::MakeCALL(pattern.get_first(0), HUDFixRaynePortrait, true);
+	pattern = hook::pattern("DC 05 ? ? ? ? D9 5D ? D9 C1 DC 45 ? DD 55 ? D9 5D");
+	injector::WriteMemory(pattern.get_first(2), &fNewPortraitPos, true);
 
-	// Fix blood on Rayne's eye
-	pattern = hook::pattern("D8 05 ? ? ? ? 03 D1 C1 FA ? 8B CA D9 5D ? C1 E9 ?");
+	// Fix blood on Rayne's eye.
+	// Looks like the blood is supposed to be actually on top of her eye, but it is misaligned in every resolution above 640x480.
+	// This corrects the X pos, but not the Y pos. Correcting the Y pos is easy, but the blood texture also gets squished above 640x480,
+	// so it looks really odd on top of the eye.
+	// Maybe someday we can fix this properly, but I honestly can't be bothered right now.
+	pattern = hook::pattern("D8 05 ? ? ? ? 03 D1 C1 FA ? 8B CA D9 5D ? C1 E9");
 	injector::MakeNOP(pattern.get_first(0), 6, true);
 }
 

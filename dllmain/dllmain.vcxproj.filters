@@ -13,8 +13,8 @@
     <ClCompile Include="..\external\ModUtils\Patterns.cpp">
       <Filter>external\ModUtils</Filter>
     </ClCompile>
-    <ClCompile Include="..\includes\CursorLock.cpp">
-      <Filter>includes</Filter>
+    <ClCompile Include="WndProcHook.cpp">
+      <Filter>dllmain</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -138,8 +138,11 @@
     <ClInclude Include="..\external\ModUtils\Trampoline.h">
       <Filter>external\ModUtils</Filter>
     </ClInclude>
-    <ClInclude Include="..\includes\CursorLock.h">
-      <Filter>includes</Filter>
+    <ClInclude Include="WndProcHook.h">
+      <Filter>dllmain</Filter>
+    </ClInclude>
+    <ClInclude Include="dllmain.h">
+      <Filter>dllmain</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -164,9 +167,6 @@
     <Filter Include="Wrappers">
       <UniqueIdentifier>{462d656f-4021-4695-b31c-152e450c072c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="settings">
-      <UniqueIdentifier>{a5f93009-19d5-47c0-8537-020855d842b5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="external\ModUtils">
       <UniqueIdentifier>{88d1e229-57d4-46a5-8f87-f1ec6de9bcbd}</UniqueIdentifier>
     </Filter>
@@ -179,9 +179,6 @@
   <ItemGroup>
     <None Include="..\Wrappers\wrapper.def">
       <Filter>Wrappers</Filter>
-    </None>
-    <None Include="..\settings\winmm.ini">
-      <Filter>settings</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

@@ -58,6 +58,9 @@
       <SubSystem>Windows</SubSystem>
       <ModuleDefinitionFile>..\Wrappers\wrapper.def</ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(TargetDir)winmm.dll" "D:\SteamLibrary\steamapps\common\BloodRayne Terminal Cut\winmm.dll"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -71,13 +74,16 @@
       <SubSystem>Windows</SubSystem>
       <ModuleDefinitionFile>..\Wrappers\wrapper.def</ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(TargetDir)winmm.dll" "D:\SteamLibrary\steamapps\common\BloodRayne Terminal Cut\winmm.dll"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\external\ModUtils\Patterns.cpp" />
-    <ClCompile Include="..\includes\CursorLock.cpp" />
     <ClCompile Include="..\includes\stdafx.cpp" />
     <ClCompile Include="..\Wrappers\wrapper.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="WndProcHook.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\external\inireader\IniReader.h" />
@@ -95,7 +101,6 @@
     <ClInclude Include="..\external\ModUtils\ModuleList.hpp" />
     <ClInclude Include="..\external\ModUtils\Patterns.h" />
     <ClInclude Include="..\external\ModUtils\Trampoline.h" />
-    <ClInclude Include="..\includes\CursorLock.h" />
     <ClInclude Include="..\includes\stdafx.h" />
     <ClInclude Include="..\Wrappers\bcrypt.h" />
     <ClInclude Include="..\Wrappers\cryptsp.h" />
@@ -120,13 +125,14 @@
     <ClInclude Include="..\Wrappers\winmm.h" />
     <ClInclude Include="..\Wrappers\wrapper.h" />
     <ClInclude Include="..\Wrappers\wsock32.h" />
+    <ClInclude Include="dllmain.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="WndProcHook.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dllmain.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\settings\winmm.ini" />
     <None Include="..\Wrappers\wrapper.def" />
   </ItemGroup>
   <ItemGroup>
