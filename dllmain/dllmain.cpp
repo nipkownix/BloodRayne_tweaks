@@ -18,6 +18,8 @@ double fNewPortraitPos = 16.0f;
 double fNewPowersPos;
 double fNewCirclePos;
 
+float fNewEyeBloodStretch;
+
 void Init()
 {
 	std::cout << "Sono me... dare no me?" << std::endl;
@@ -46,6 +48,9 @@ void Init()
 
 			fNewPowersPos = fOrigPowerPos + fPowerPosOffset;
 			fNewCirclePos = fOrigCirclePos - fPowerPosOffset;
+
+			// Actual magic
+			fNewEyeBloodStretch = round(39.8113 - pow(0.000854096 * fGameHeight, -3.45158));
 
 			#ifdef VERBOSE
 			std::cout << std::hex << "ResPointer = " << ResPointer << std::endl;
@@ -86,11 +91,16 @@ void Init()
 
 	// Fix blood on Rayne's eye.
 	// Looks like the blood is supposed to be actually on top of her eye, but it is misaligned in every resolution above 640x480.
-	// This corrects the X pos, but not the Y pos. Correcting the Y pos is easy, but the blood texture also gets squished above 640x480,
-	// so it looks really odd on top of the eye.
-	// Maybe someday we can fix this properly, but I honestly can't be bothered right now.
-	pattern = hook::pattern("D8 05 ? ? ? ? 03 D1 C1 FA ? 8B CA D9 5D ? C1 E9");
+	// This still doesn't make it perfect, but it is better I guess.
+	pattern = hook::pattern("D8 05 ? ? ? ? 03 D1 C1 FA ? 8B CA D9 5D ? C1 E9"); // X pos
 	injector::MakeNOP(pattern.get_first(0), 6, true);
+
+	pattern = hook::pattern("D8 C9 89 75 ? D9 C9 DC 0D ? ? ? ? DE C1 D9 5D ? D9 C9"); // Y pos
+	injector::MakeNOP(pattern.get_first(0), 2, true);
+
+	pattern = hook::pattern("D9 5D ? D9 05 ? ? ? ? D9 5D ? DC 0D");
+	injector::WriteMemory(pattern.get_first(5), &fNewEyeBloodStretch, true);
+
 }
 
 void LoadRealDLL(HMODULE hModule)
