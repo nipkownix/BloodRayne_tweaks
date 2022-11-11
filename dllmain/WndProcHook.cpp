@@ -7,7 +7,8 @@ HWND hWindow;
 HHOOK WndProcHook;
 HHOOK GetMessageHook;
 
-void EnableClipCursor(HWND window) {
+void EnableClipCursor(HWND window)
+{
 	RECT rect;
 	GetClientRect(window, &rect);
 
@@ -40,7 +41,8 @@ void EnableClipCursor(HWND window) {
 	#endif
 }
 
-void DisableClipCursor() {
+void DisableClipCursor()
+{
 	ClipCursor(nullptr);
 
 	#ifdef VERBOSE

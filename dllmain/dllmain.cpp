@@ -13,8 +13,8 @@ HMODULE proxy_dll = nullptr;
 
 uint32_t ResPointer;
 
-double fNewHealthBoxPos = 0.0f;
-double fNewPortraitPos = 16.0f;
+double fNewHealthBoxPos = 0.0;
+double fNewPortraitPos = 16.0;
 double fNewPowersPos;
 double fNewCirclePos;
 
@@ -27,7 +27,7 @@ void Init()
 	Init_WndProcHook();
 
 	// Get game resolution
-	auto pattern = hook::pattern("8B 0D ? ? ? ? 8B 11 89 15 ? ? ? ? 8B 41 ? A3 ? ? ? ? A1 ? ? ? ? 83 F8");
+	auto pattern = hook::pattern("8B 0D ? ? ? ? 8B 01 A3 ? ? ? ? A1 ? ? ? ? 8B 51");
 	ResPointer = injector::ReadMemory<uint32_t>(*pattern.count(1).get(0).get<uint32_t*>(2), true);
 	struct GetGameRes
 	{
@@ -36,21 +36,21 @@ void Init()
 			regs.ecx = ResPointer;
 
 			// Calculate HUD pos
-			double fOrigPowerPos = 528;
-			double fOrigCirclePos = 110;
+			double fOrigPowerPos = 528.0;
+			double fOrigCirclePos = 110.0;
 
 			double fGameWidth = *(int32_t*)ResPointer;
 			double fGameHeight = *(int32_t*)(ResPointer + 0x4);
 
 			double fAspectRatio = (fGameWidth / fGameHeight);
 
-			double fPowerPosOffset = ((480.0f * fAspectRatio) - 640.0f) / 2.0f;
+			double fPowerPosOffset = (double)(((480.0f * fAspectRatio) - 640.0f) / 2.0f);
 
 			fNewPowersPos = fOrigPowerPos + fPowerPosOffset;
 			fNewCirclePos = fOrigCirclePos - fPowerPosOffset;
 
 			// Actual magic
-			fNewEyeBloodStretch = round(39.8113 - pow(0.000854096 * fGameHeight, -3.45158));
+			fNewEyeBloodStretch = (float)(round(39.8113 - pow(0.000854096 * fGameHeight, -3.45158)));
 
 			#ifdef VERBOSE
 			std::cout << std::hex << "ResPointer = " << ResPointer << std::endl;
